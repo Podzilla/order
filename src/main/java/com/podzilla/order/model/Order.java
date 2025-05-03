@@ -46,11 +46,12 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval =
+            true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     public Order(final long userId, final double totalAmount,
-                 final OrderStatus status, List<OrderItem> orderItems) {
+                 final OrderStatus status, final List<OrderItem> orderItems) {
         this.userId = userId;
         this.totalAmount = totalAmount;
         this.status = status;

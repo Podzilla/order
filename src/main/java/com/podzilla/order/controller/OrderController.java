@@ -14,14 +14,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
 
     private final OrderService orderService;
+
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     public OrderController(final OrderService orderService) {
@@ -61,25 +70,47 @@ public class OrderController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Order> getOrderByUserId(
+    @Operation(
+            summary = "Get order by user ID",
+            description = "Fetches an order based on the provided user ID"
+    )
+    @ApiResponse(
+            responseCode = "200", description = "Order found"
+    )
+    public ResponseEntity<Optional<Order>> getOrderByUserId(
             @PathVariable final long userId) {
-        Order order = orderService.getOrderByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+        Optional<Order> order = orderService.getOrderByUserId(userId);
+        LOGGER.info("Order found for user ID: {}", userId);
         return ResponseEntity.ok(order);
     }
 
     @PutMapping("/cancel/{id}")
+    @Operation(
+            summary = "Cancel order",
+            description = "Cancels an order based on the provided order ID"
+    )
+    @ApiResponse(
+            responseCode = "200", description = "Order cancelled"
+    )
     public ResponseEntity<Order> cancelOrder(@PathVariable final long id) {
         Order order = orderService.cancelOrder(id);
+        LOGGER.info("Order with ID: {} cancelled", id);
         return ResponseEntity.ok(order);
     }
 
-    // Endpoint to update order status
     @PutMapping("/status/{id}")
+    @Operation(
+            summary = "Update order status",
+            description = "Updates the status of an order based on " +
+                    "the provided order ID"
+    )
+    @ApiResponse(
+            responseCode = "200", description = "Order status updated"
+    )
     public ResponseEntity<Order> updateOrderStatus(@PathVariable final long id,
                                        @RequestBody final OrderStatus status) {
         Order order = orderService.updateOrderStatus(id, status);
+        LOGGER.info("Order status updated for ID: {}", id);
         return ResponseEntity.ok(order);
     }
-
 }

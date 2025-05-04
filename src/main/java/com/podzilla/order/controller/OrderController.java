@@ -61,8 +61,8 @@ public class OrderController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Order> getOrderByUserId
-            (@PathVariable final long userId) {
+    public ResponseEntity<Order> getOrderByUserId(
+            @PathVariable final long userId) {
         Order order = orderService.getOrderByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         return ResponseEntity.ok(order);

@@ -2,6 +2,7 @@ package com.podzilla.order.controller;
 
 
 import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -58,4 +59,27 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Order> getOrderByUserId
+            (@PathVariable final long userId) {
+        Order order = orderService.getOrderByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return ResponseEntity.ok(order);
+    }
+
+    @PutMapping("/cancel/{id}")
+    public ResponseEntity<Order> cancelOrder(@PathVariable final long id) {
+        Order order = orderService.cancelOrder(id);
+        return ResponseEntity.ok(order);
+    }
+
+    // Endpoint to update order status
+    @PutMapping("/status/{id}")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable final long id,
+                                       @RequestBody final OrderStatus status) {
+        Order order = orderService.updateOrderStatus(id, status);
+        return ResponseEntity.ok(order);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.podzilla.order.service;
 
 import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -58,6 +59,39 @@ public class OrderService {
             orderRepository.deleteById(id);
         } else {
             log.warn("Order with ID: {} not found for deletion", id);
+            throw new RuntimeException("Order not found with id: " + id);
+        }
+    }
+
+    public Optional<Order> getOrderByUserId(final long userId) {
+        log.info("Fetching order with user ID: {}", userId);
+        return orderRepository.findByUserId(userId);
+    }
+
+    public Order cancelOrder(final long id) {
+        log.info("Cancelling order with ID: {}", id);
+        Optional<Order> existingOrder = orderRepository.findById(id);
+        if (existingOrder.isPresent()) {
+            Order order = existingOrder.get();
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setUpdatedAt(LocalDateTime.now());
+            return orderRepository.save(order);
+        } else {
+            log.warn("Order with id: {} was not found", id);
+            throw new RuntimeException("Order not found with id: " + id);
+        }
+    }
+
+    public Order updateOrderStatus(final long id, final OrderStatus status) {
+        log.info("Updating order status with ID: {}", id);
+        Optional<Order> existingOrder = orderRepository.findById(id);
+        if (existingOrder.isPresent()) {
+            Order order = existingOrder.get();
+            order.setStatus(status);
+            order.setUpdatedAt(LocalDateTime.now());
+            return orderRepository.save(order);
+        } else {
+            log.warn("Order with id: {} was not found", id);
             throw new RuntimeException("Order not found with id: " + id);
         }
     }

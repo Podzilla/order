@@ -101,8 +101,8 @@ public class OrderController {
     @PutMapping("/status/{id}")
     @Operation(
             summary = "Update order status",
-            description = "Updates the status of an order based on " +
-                    "the provided order ID"
+            description = "Updates the status of an order based on "
+                    + "the provided order ID"
     )
     @ApiResponse(
             responseCode = "200", description = "Order status updated"

@@ -36,8 +36,8 @@ public class OrderController {
     @PostMapping
     @Operation(summary = "Create a new order",
             description = "Creates a new order and returns the created order")
-    @ApiResponse(responseCode = "200", description = "Order created " +
-            "successfully")
+    @ApiResponse(responseCode = "200", description = "Order created "
+            + "successfully")
     public ResponseEntity<Order> createOrder(@RequestBody final Order order) {
         LOGGER.info("Creating new order: {}", order);
         Order createdOrder = orderService.createOrder(order);
@@ -69,8 +69,8 @@ public class OrderController {
     @Operation(summary = "Update an order",
             description = "Updates an existing order and returns the updated "
                     + "order")
-    @ApiResponse(responseCode = "200", description = "Order updated " +
-            "successfully")
+    @ApiResponse(responseCode = "200", description = "Order updated "
+            + "successfully")
     public ResponseEntity<Order> updateOrder(@PathVariable final long id,
                                              @RequestBody final Order order) {
         LOGGER.info("Updating order with ID: {}", id);

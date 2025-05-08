@@ -113,4 +113,18 @@ public class OrderController {
         LOGGER.info("Order status updated for ID: {}", id);
         return ResponseEntity.ok(order);
     }
+
+    @PostMapping("/checkout/{id}")
+    @Operation(
+            summary = "Checkout order",
+            description = "Checks out an order based on the provided order ID"
+    )
+    @ApiResponse(
+            responseCode = "200", description = "Order checked out"
+    )
+    public ResponseEntity<Order> checkoutOrder(@PathVariable final long id) {
+        Order order = orderService.checkoutOrder(id);
+        LOGGER.info("Order with ID: {} checked out", id);
+        return ResponseEntity.ok(order);
+    }
 }

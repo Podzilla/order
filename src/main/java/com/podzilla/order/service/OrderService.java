@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Slf4j
@@ -35,12 +36,12 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public Optional<Order> getOrderById(final long id) {
+    public Optional<Order> getOrderById(final UUID id) {
         log.info("Fetching order with ID: {}", id);
         return orderRepository.findById(id);
     }
 
-    public Order updateOrder(final long id, final Order updatedOrder) {
+    public Order updateOrder(final UUID id, final Order updatedOrder) {
         log.info("Updating order with ID: {}", id);
         Optional<Order> existingOrder = orderRepository.findById(id);
         if (existingOrder.isPresent()) {
@@ -54,7 +55,7 @@ public class OrderService {
         throw new RuntimeException("Order not found with id: " + id);
     }
 
-    public void deleteOrder(final long id) {
+    public void deleteOrder(final UUID id) {
         if (orderRepository.existsById(id)) {
             log.warn("Deleting order with ID: {}", id);
             orderRepository.deleteById(id);
@@ -64,7 +65,7 @@ public class OrderService {
         }
     }
 
-    public Optional<Order> getOrderByUserId(final long userId) {
+    public Optional<Order> getOrderByUserId(final UUID userId) {
         log.info("Fetching order with user ID: {}", userId);
 
         Optional<Order> order = orderRepository.findByUserId(userId);
@@ -75,9 +76,7 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
-
-
-    public Order cancelOrder(final long id) {
+    public Order cancelOrder(final UUID id) {
         log.info("Cancelling order with ID: {}", id);
 
         Optional<Order> existingOrder = orderRepository.findById(id);
@@ -91,7 +90,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public Order updateOrderStatus(final long id,
+    public Order updateOrderStatus(final UUID id,
                                    final OrderStatus status) {
         log.info("Updating order status with ID: {}", id);
 

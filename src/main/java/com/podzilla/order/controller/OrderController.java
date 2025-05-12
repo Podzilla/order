@@ -33,9 +33,6 @@ public class OrderController {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(OrderController.class);
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(OrderController.class);
-
     @Autowired
     public OrderController(final OrderService orderService) {
         this.orderService = orderService;
@@ -139,20 +136,6 @@ public class OrderController {
                                        @RequestBody final OrderStatus status) {
         Order order = orderService.updateOrderStatus(id, status);
         LOGGER.info("Order status updated for ID: {}", id);
-        return ResponseEntity.ok(order);
-    }
-
-    @PostMapping("/checkout/{id}")
-    @Operation(
-            summary = "Checkout order",
-            description = "Checks out an order based on the provided order ID"
-    )
-    @ApiResponse(
-            responseCode = "200", description = "Order checked out"
-    )
-    public ResponseEntity<Order> checkoutOrder(@PathVariable final long id) {
-        Order order = orderService.checkoutOrder(id);
-        LOGGER.info("Order with ID: {} checked out", id);
         return ResponseEntity.ok(order);
     }
 }

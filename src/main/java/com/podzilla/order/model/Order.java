@@ -1,16 +1,17 @@
 package com.podzilla.order.model;
 
 
+import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Column;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -30,11 +32,14 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private UUID id;
 
-    private long userId;
+    private UUID userId;
 
     private double totalAmount;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Address shippingAddress;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -50,7 +55,7 @@ public class Order {
             true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public Order(final long userId, final double totalAmount,
+    public Order(final UUID userId, final double totalAmount,
                  final OrderStatus status, final List<OrderItem> orderItems) {
         this.userId = userId;
         this.totalAmount = totalAmount;

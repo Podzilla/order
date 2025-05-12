@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/orders")
@@ -63,7 +63,7 @@ public class OrderController {
     @Operation(summary = "Get order by ID",
             description = "Returns an order by its ID")
     @ApiResponse(responseCode = "200", description = "Order found")
-    public ResponseEntity<Order> getOrderById(@PathVariable final long id) {
+    public ResponseEntity<Order> getOrderById(@PathVariable final UUID id) {
         LOGGER.info("Fetching order with ID: {}", id);
         Order order = orderService.getOrderById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -76,7 +76,7 @@ public class OrderController {
                     + "order")
     @ApiResponse(responseCode = "200", description = "Order updated "
             + "successfully")
-    public ResponseEntity<Order> updateOrder(@PathVariable final long id,
+    public ResponseEntity<Order> updateOrder(@PathVariable final UUID id,
                                              @RequestBody final Order order) {
         LOGGER.info("Updating order with ID: {}", id);
         Order updatedOrder = orderService.updateOrder(id, order);
@@ -88,7 +88,7 @@ public class OrderController {
             description = "Deletes an order by its ID")
     @ApiResponse(responseCode = "204", description = "Order deleted "
             + "successfully")
-    public ResponseEntity<Void> deleteOrder(@PathVariable final long id) {
+    public ResponseEntity<Void> deleteOrder(@PathVariable final UUID id) {
         LOGGER.info("Deleting order with ID: {}", id);
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
@@ -103,7 +103,7 @@ public class OrderController {
             responseCode = "200", description = "Order found"
     )
     public ResponseEntity<Optional<Order>> getOrderByUserId(
-            @PathVariable final long userId) {
+            @PathVariable final UUID userId) {
         Optional<Order> order = orderService.getOrderByUserId(userId);
         LOGGER.info("Order found for user ID: {}", userId);
         return ResponseEntity.ok(order);
@@ -117,7 +117,7 @@ public class OrderController {
     @ApiResponse(
             responseCode = "200", description = "Order cancelled"
     )
-    public ResponseEntity<Order> cancelOrder(@PathVariable final long id) {
+    public ResponseEntity<Order> cancelOrder(@PathVariable final UUID id) {
         Order order = orderService.cancelOrder(id);
         LOGGER.info("Order with ID: {} cancelled", id);
         return ResponseEntity.ok(order);
@@ -132,7 +132,7 @@ public class OrderController {
     @ApiResponse(
             responseCode = "200", description = "Order status updated"
     )
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable final long id,
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable final UUID id,
                                        @RequestBody final OrderStatus status) {
         Order order = orderService.updateOrderStatus(id, status);
         LOGGER.info("Order status updated for ID: {}", id);

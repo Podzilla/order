@@ -75,6 +75,8 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
+
+
     public Order cancelOrder(final long id) {
         log.info("Cancelling order with ID: {}", id);
 
@@ -102,40 +104,6 @@ public class OrderService {
         order.setStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
         return orderRepository.save(order);
-    }
-
-    public Order checkoutOrder(final long id) {
-        log.info("Checking out order with ID: {}", id);
-
-        Optional<Order> existingOrder = orderRepository.findById(id);
-        checkNotFoundException(existingOrder.orElse(null),
-                "Order not found with id: " + id);
-
-        Order order = existingOrder.get();
-
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Only pending orders "
-                    + "can be checked out.");
-        }
-
-        order.setStatus(OrderStatus.CONFIRMED);
-        order.setUpdatedAt(LocalDateTime.now());
-        Order savedOrder = orderRepository.save(order);
-
-        //ToDo: Uncomment and implement the message publisher
-//        OrderCheckedOutEvent event = new OrderCheckedOutEvent(
-//                savedOrder.getId(),
-//                savedOrder.getUserId(),
-//                savedOrder.getTotalAmount(), // if applicable
-//                savedOrder.getStatus().name(),
-//                savedOrder.getUpdatedAt().toString()
-//        );
-//
-//        messagePublisher.publishOrderCheckedOutEvent(event);
-//
-//        log.info("Order with ID: {} has been checked out and event published",
-//                id);
-        return savedOrder;
     }
 
     private void checkNotFoundException(final Object value,

@@ -2,6 +2,10 @@ package com.podzilla.order.service;
 
 import com.podzilla.order.exception.NotFoundException;
 import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderItem;
+import com.podzilla.order.model.StockReservationRequest;
+import com.podzilla.order.model.OrderPlaced;
+import com.podzilla.order.messaging.OrderProducer;
 import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -18,17 +22,45 @@ import java.util.UUID;
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderProducer orderProducer;
 
     @Autowired
-    public OrderService(final OrderRepository orderRepository) {
+    public OrderService(final OrderRepository orderRepository,
+                        final OrderProducer orderProducer) {
         this.orderRepository = orderRepository;
+        this.orderProducer = orderProducer;
     }
 
     public Order createOrder(final Order order) {
         log.info("Creating new order: {}", order);
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        return orderRepository.save(order);
+        orderRepository.save(order);
+
+        List<OrderItem> orderItems = order.getOrderItems();
+
+        // Send request to stock service to reserve stock
+        StockReservationRequest stockReservationRequest =
+                new StockReservationRequest(
+                        order.getId().toString(),
+                        orderItems
+                );
+
+        orderProducer.sendStockReservationRequest(stockReservationRequest);
+
+        return order;
+    }
+
+    public Order placeOrder(final UUID orderId) {
+        log.info("Placing order with ID: {}", orderId);
+        Order order = updateOrderStatus(orderId, OrderStatus.PLACED);
+
+        OrderPlaced stockReservedAnalytics =
+                new OrderPlaced(order);
+
+        // Send order details to analytics service
+        orderProducer.sendOrderPlaced(stockReservedAnalytics);
+        return order;
     }
 
     public List<Order> getAllOrders() {

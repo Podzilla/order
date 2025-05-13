@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class Order {
 
     private UUID userId;
 
-    private double totalAmount;
+    private BigDecimal totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Address shippingAddress;
@@ -55,7 +56,7 @@ public class Order {
             true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public Order(final UUID userId, final double totalAmount,
+    public Order(final UUID userId, final BigDecimal totalAmount,
                  final OrderStatus status, final List<OrderItem> orderItems) {
         this.userId = userId;
         this.totalAmount = totalAmount;

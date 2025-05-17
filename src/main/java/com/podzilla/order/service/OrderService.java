@@ -3,7 +3,6 @@ package com.podzilla.order.service;
 import com.podzilla.mq.events.OrderCancelledEvent;
 import com.podzilla.mq.events.OrderItem;
 import com.podzilla.mq.events.OrderPlacedEvent;
-import com.podzilla.mq.events.OrderStockReservationRequestedEvent;
 import com.podzilla.mq.events.DeliveryAddress;
 import com.podzilla.order.dtos.LocationDTO;
 import com.podzilla.order.exception.NotFoundException;
@@ -19,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.podzilla.order.service.statusstrategy.OrderStatusStrategy;
+import com.podzilla.order.service.statusstrategy.OrderStatusStrategyFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProducer orderProducer;
     private final WebClient webClient;
+    private final OrderStatusStrategyFactory strategyFactory;
 
     @Value("${api.gateway.url}")
     private String apiGatewayUrl;
@@ -40,10 +42,12 @@ public class OrderService {
     @Autowired
     public OrderService(final OrderRepository orderRepository,
                         final OrderProducer orderProducer,
-                        final WebClient webClient) {
+                        final WebClient webClient,
+                        final OrderStatusStrategyFactory strategyFactory) {
         this.orderRepository = orderRepository;
         this.orderProducer = orderProducer;
         this.webClient = webClient;
+        this.strategyFactory = strategyFactory;
     }
 
     public Order createOrder(final Order order) {
@@ -51,12 +55,16 @@ public class OrderService {
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
-        OrderStockReservationRequestedEvent stockReservationRequest =
-                OrderStockReservationRequestedEvent.builder()
-                        .orderId(order.getId().toString())
-                        .items(getOrderItems(order))
-                        .build();
-        orderProducer.sendStockReservationRequest(stockReservationRequest);
+
+        OrderStatusStrategy strategy = strategyFactory.getStrategy(OrderStatus.PENDING);
+        strategy.handle(order);
+
+//        OrderStockReservationRequestedEvent stockReservationRequest =
+//                OrderStockReservationRequestedEvent.builder()
+//                        .orderId(order.getId().toString())
+//                        .items(getOrderItems(order))
+//                        .build();
+//        orderProducer.sendStockReservationRequest(stockReservationRequest);
         return order;
     }
 

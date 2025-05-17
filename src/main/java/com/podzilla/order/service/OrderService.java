@@ -79,6 +79,8 @@ public class OrderService {
                         .deliveryAddress(deliveryAddress)
                         .confirmationType(order.getConfirmationType())
                         .signature(order.getSignature())
+                        .orderLatitude(order.getOrderLatitude())
+                        .orderLongitude(order.getOrderLongitude())
                         .build();
         orderProducer.sendOrderPlaced(orderPlaced);
         return order;

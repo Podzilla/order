@@ -112,6 +112,8 @@ public class OrderConsumer {
         order.setOrderProducts(orderProducts);
         order.setConfirmationType(cartCheckedoutEvent.getConfirmationType());
         order.setSignature(cartCheckedoutEvent.getSignature());
+        order.setOrderLatitude(cartCheckedoutEvent.getOrderLatitude());
+        order.setOrderLongitude(cartCheckedoutEvent.getOrderLongitude());
         orderService.createOrder(order);
     }
 

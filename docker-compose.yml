@@ -22,7 +22,6 @@ services:
       POSTGRES_DB: orderDB
     ports:
       - "5432:5432"
-      -
 
   rabbitmq:
     image: rabbitmq:3-management

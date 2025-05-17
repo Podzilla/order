@@ -32,7 +32,7 @@ import java.util.UUID;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private UUID userId;
@@ -43,27 +43,27 @@ public class Order {
     private Address shippingAddress;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private OrderStatus status;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval =
             true)
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private List<OrderProduct> orderProducts = new ArrayList<>();
 
     public Order(final UUID userId, final BigDecimal totalAmount,
-                 final OrderStatus status, final List<OrderItem> orderItems) {
+                 final OrderStatus status, final List<OrderProduct> orderProducts) {
         this.userId = userId;
         this.totalAmount = totalAmount;
         this.status = status;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.orderItems = orderItems;
+        this.orderProducts = orderProducts;
     }
 
 }

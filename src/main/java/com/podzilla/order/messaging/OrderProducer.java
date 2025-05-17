@@ -1,33 +1,45 @@
 package com.podzilla.order.messaging;
 
+import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.EventsConstants;
+import com.podzilla.mq.events.OrderCancelledEvent;
+import com.podzilla.mq.events.OrderPlacedEvent;
+import com.podzilla.mq.events.OrderStockReservationRequestedEvent;
+import com.podzilla.mq.events.WarehouseStockReservedEvent;
+import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OrderProducer {
 
-    private final RabbitTemplate rabbitTemplate;
 
-    public OrderProducer(final RabbitTemplate rabbitTemplate,
-                         final RabbitMQConfig rabbitMQConfig) {
-        this.rabbitTemplate = rabbitTemplate;
-    }
+    private final EventPublisher eventPublisher;
+
 
     public void sendStockReservationRequest(
-                        final Object stockReservationRequest) {
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.ORDER_ROUTING_KEY,
-                stockReservationRequest
+            final OrderStockReservationRequestedEvent orderStockReservationRequestedEvent) {
+
+        eventPublisher.publishEvent(
+                EventsConstants.ORDER_STOCK_RESERVATION_REQUESTED,
+                orderStockReservationRequestedEvent
         );
     }
 
     public void sendOrderPlaced(
-            final Object orderPlaced) {
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE,
-                RabbitMQConfig.ORDER_PLACED_ROUTING_KEY,
+            final OrderPlacedEvent orderPlaced) {
+        eventPublisher.publishEvent(
+                EventsConstants.ORDER_PLACED,
                 orderPlaced
+        );
+    }
+
+    public void sendCancelOrder(
+            final OrderCancelledEvent orderCancelledEvent){
+        eventPublisher.publishEvent(
+                EventsConstants.ORDER_CANCELLED,
+                orderCancelledEvent
         );
     }
 }

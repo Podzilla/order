@@ -1,18 +1,19 @@
 package com.podzilla.order.service;
 
+import com.podzilla.mq.events.*;
 import com.podzilla.order.exception.NotFoundException;
-import com.podzilla.order.model.Order;
-import com.podzilla.order.model.OrderItem;
-import com.podzilla.order.model.StockReservationRequest;
-import com.podzilla.order.model.OrderPlaced;
 import com.podzilla.order.messaging.OrderProducer;
+import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderProduct;
 import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,30 +37,26 @@ public class OrderService {
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
-
-        List<OrderItem> orderItems = order.getOrderItems();
-
-        // Send request to stock service to reserve stock
-        StockReservationRequest stockReservationRequest =
-                new StockReservationRequest(
-                        order.getId().toString(),
-                        orderItems
-                );
-
+        OrderStockReservationRequestedEvent stockReservationRequest =
+                OrderStockReservationRequestedEvent.builder()
+                        .orderId(order.getId().toString())
+                        .items(getOrderItems(order))
+                        .build();
         orderProducer.sendStockReservationRequest(stockReservationRequest);
-
         return order;
     }
 
     public Order placeOrder(final UUID orderId) {
         log.info("Placing order with ID: {}", orderId);
         Order order = updateOrderStatus(orderId, OrderStatus.PLACED);
-
-        OrderPlaced stockReservedAnalytics =
-                new OrderPlaced(order);
-
-        // Send order details to analytics service
-        orderProducer.sendOrderPlaced(stockReservedAnalytics);
+        OrderPlacedEvent orderPlaced =
+                OrderPlacedEvent.builder()
+                        .orderId(order.getId().toString())
+                        .customerId(order.getUserId().toString())
+                        .items(getOrderItems(order))
+                        .totalAmount(order.getTotalAmount())
+                        .build();
+        orderProducer.sendOrderPlaced(orderPlaced);
         return order;
     }
 
@@ -119,7 +116,15 @@ public class OrderService {
         Order order = existingOrder.get();
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
-        return orderRepository.save(order);
+        orderRepository.save(order);
+        OrderCancelledEvent orderCancelledEvent =
+                OrderCancelledEvent.builder()
+                        .orderId(order.getId().toString())
+                        .customerId(order.getUserId().toString())
+                        .reason("Customer requested cancellation")
+                        .build();
+        orderProducer.sendCancelOrder(orderCancelledEvent);
+        return order;
     }
 
     public Order updateOrderStatus(final UUID id,
@@ -142,5 +147,18 @@ public class OrderService {
         if (value == null) {
             throw new NotFoundException(message);
         }
+    }
+
+    private List<OrderItem> getOrderItems(final Order order) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        List<OrderProduct> orderProducts = order.getOrderProducts();
+        for (OrderProduct product : orderProducts) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(product.getId().toString());
+            orderItem.setQuantity(product.getQuantity());
+            orderItem.setPricePerUnit(product.getPricePerUnit());
+            orderItems.add(orderItem);
+        }
+        return orderItems;
     }
 }

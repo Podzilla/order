@@ -1,10 +1,12 @@
 package com.podzilla.order.model;
 
 public enum OrderStatus {
+    PENDING,
     PLACED,
-    CANCELLED,
-    SHIPPED,
+    PACKAGED,
+    ORDER_ASSIGNED_TO_COURIER,
+    OUT_FOR_DELIVERY,
     DELIVERED,
-    FAILED
+    CANCELLED,
 }
 

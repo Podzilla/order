@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.GenerationType;
+import com.podzilla.mq.events.ConfirmationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,7 +53,15 @@ public class Order {
 
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval =
-            true)
+    private ConfirmationType confirmationType;
+
+    private String signature;
+
+    private double orderLatitude;
+
+    private double orderLongitude;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 }

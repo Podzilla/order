@@ -4,14 +4,13 @@ import com.podzilla.mq.events.OrderCancelledEvent;
 import com.podzilla.mq.events.OrderItem;
 import com.podzilla.mq.events.OrderPlacedEvent;
 import com.podzilla.mq.events.OrderStockReservationRequestedEvent;
+import com.podzilla.mq.events.DeliveryAddress;
 import com.podzilla.order.dtos.LocationDTO;
 import com.podzilla.order.exception.NotFoundException;
 import com.podzilla.order.messaging.OrderProducer;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderLocation;
 import com.podzilla.order.model.OrderProduct;
-import com.podzilla.order.exception.NotFoundException;
-import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +22,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,12 +63,22 @@ public class OrderService {
     public Order placeOrder(final UUID orderId) {
         log.info("Placing order with ID: {}", orderId);
         Order order = updateOrderStatus(orderId, OrderStatus.PLACED);
+        DeliveryAddress deliveryAddress = new DeliveryAddress(
+                order.getShippingAddress().getStreet(),
+                order.getShippingAddress().getCity(),
+                order.getShippingAddress().getState(),
+                order.getShippingAddress().getCountry(),
+                order.getShippingAddress().getPostalCode()
+        );
         OrderPlacedEvent orderPlaced =
                 OrderPlacedEvent.builder()
                         .orderId(order.getId().toString())
                         .customerId(order.getUserId().toString())
                         .items(getOrderItems(order))
                         .totalAmount(order.getTotalAmount())
+                        .deliveryAddress(deliveryAddress)
+                        .confirmationType(order.getConfirmationType())
+                        .signature(order.getSignature())
                         .build();
         orderProducer.sendOrderPlaced(orderPlaced);
         return order;
@@ -172,9 +179,10 @@ public class OrderService {
                 .bodyToMono(LocationDTO.class)
                 .block();
 
-        if (location == null || location.getFirst() == null || location.getSecond() == null) {
+        if (location == null) {
             throw new RuntimeException("Failed to get location for order " + id);
         }
+        log.info("Order location: {}", location);
         return new OrderLocation(location.getFirst(), location.getSecond());
     }
 

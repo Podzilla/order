@@ -13,6 +13,7 @@ import com.podzilla.order.model.Address;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderProduct;
 import com.podzilla.order.model.OrderStatus;
+
 import com.podzilla.order.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -71,8 +72,7 @@ public class OrderConsumer {
 
         log.info("✅ Stock reserved for order: {}",
                 warehouseStockReservedEvent.getOrderId());
-        orderService.placeOrder(UUID.fromString(
-                warehouseStockReservedEvent.getOrderId()));
+        orderService.placeOrder(UUID.fromString(warehouseStockReservedEvent.getOrderId()));
     }
 
     private void handleWarehouseOrderFulfillmentFailedEvent(
@@ -82,8 +82,7 @@ public class OrderConsumer {
                 warehouseOrderFulfillmentFailedEvent.getOrderId(),
                 warehouseOrderFulfillmentFailedEvent.getReason());
         orderService.cancelOrder(
-                UUID.fromString(warehouseOrderFulfillmentFailedEvent
-                        .getOrderId()),
+                UUID.fromString(warehouseOrderFulfillmentFailedEvent.getOrderId()),
                 warehouseOrderFulfillmentFailedEvent.getReason());
     }
 
@@ -92,20 +91,15 @@ public class OrderConsumer {
         log.info("✅ Cart checked out for user with id: {}",
                 cartCheckedoutEvent.getCustomerId());
         Address address = new Address();
-        address.setStreet(
-                cartCheckedoutEvent.getDeliveryAddress().getStreet());
+        address.setStreet(cartCheckedoutEvent.getDeliveryAddress().getStreet());
         address.setCity(cartCheckedoutEvent.getDeliveryAddress().getCity());
         address.setState(cartCheckedoutEvent.getDeliveryAddress().getState());
-        address.setCountry(
-                cartCheckedoutEvent.getDeliveryAddress().getCountry());
-        address.setPostalCode(
-                cartCheckedoutEvent.getDeliveryAddress().getPostalCode());
-        List<OrderProduct> orderProducts =
-                cartCheckedoutEvent.getItems().stream()
+        address.setCountry(cartCheckedoutEvent.getDeliveryAddress().getCountry());
+        address.setPostalCode(cartCheckedoutEvent.getDeliveryAddress().getPostalCode());
+        List<OrderProduct> orderProducts = cartCheckedoutEvent.getItems().stream()
                 .map(orderProduct -> {
                     OrderProduct product = new OrderProduct();
-                    product.setProductId(
-                            UUID.fromString(orderProduct.getProductId()));
+                    product.setProductId(UUID.fromString(orderProduct.getProductId()));
                     product.setQuantity(orderProduct.getQuantity());
                     product.setPricePerUnit(orderProduct.getPricePerUnit());
                     return product;
@@ -116,18 +110,18 @@ public class OrderConsumer {
         order.setStatus(OrderStatus.PENDING);
         order.setShippingAddress(address);
         order.setOrderProducts(orderProducts);
+        order.setConfirmationType(cartCheckedoutEvent.getConfirmationType());
+        order.setSignature(cartCheckedoutEvent.getSignature());
         orderService.createOrder(order);
     }
 
-    private void handleOrderAssignedToCourierEvent(
-            final OrderAssignedToCourierEvent orderAssignedToCourierEvent) {
+    private void handleOrderAssignedToCourierEvent(final OrderAssignedToCourierEvent orderAssignedToCourierEvent) {
         log.info("✅ Order assigned to courier for order: {}",
                 orderAssignedToCourierEvent.getOrderId());
         orderService.updateOrder(
                 UUID.fromString(orderAssignedToCourierEvent.getOrderId()),
                 Order.builder()
-                        .courierId(UUID.fromString(
-                                orderAssignedToCourierEvent.getCourierId()))
+                        .courierId(UUID.fromString(orderAssignedToCourierEvent.getCourierId()))
                         .status(OrderStatus.ORDER_ASSIGNED_TO_COURIER)
                         .build());
     }
@@ -136,26 +130,20 @@ public class OrderConsumer {
             final OrderDeliveredEvent orderDeliveredEvent) {
         log.info("✅ Order delivered for order: {}",
                 orderDeliveredEvent.getOrderId());
-        orderService.updateOrderStatus(
-                UUID.fromString(orderDeliveredEvent.getOrderId()),
-                OrderStatus.DELIVERED);
+        orderService.updateOrderStatus(UUID.fromString(orderDeliveredEvent.getOrderId()), OrderStatus.DELIVERED);
     }
 
-    private void handleOrderOutForDeliveryEvent(
-            final OrderOutForDeliveryEvent orderOutForDeliveryEvent) {
-        log.info("✅ Order out for delivery for order: {}",
-                orderOutForDeliveryEvent.getOrderId());
+    private void handleOrderOutForDeliveryEvent(final OrderOutForDeliveryEvent orderOutForDeliveryEvent) {
+        log.info("✅ Order out for delivery for order: {}", orderOutForDeliveryEvent.getOrderId());
         orderService.updateOrder(
                 UUID.fromString(orderOutForDeliveryEvent.getOrderId()),
                 Order.builder()
-                        .courierId(UUID.fromString(orderOutForDeliveryEvent
-                                .getCourierId()))
+                        .courierId(UUID.fromString(orderOutForDeliveryEvent.getCourierId()))
                         .status(OrderStatus.OUT_FOR_DELIVERY)
                         .build());
     }
 
-    private void handleOrderPackagedEvent(
-            final OrderPackagedEvent orderPackagedEvent) {
+    private void handleOrderPackagedEvent(final OrderPackagedEvent orderPackagedEvent) {
         log.info("✅ Order packaged for order: {}",
                 orderPackagedEvent.getOrderId());
         orderService.updateOrderStatus(

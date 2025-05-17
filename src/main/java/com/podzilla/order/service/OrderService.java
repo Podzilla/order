@@ -15,6 +15,7 @@ import com.podzilla.order.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -31,6 +32,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProducer orderProducer;
     private final WebClient webClient;
+
+    @Value("${api.gateway.url}")
+    private String apiGatewayUrl;
 
     @Autowired
     public OrderService(final OrderRepository orderRepository,
@@ -156,10 +160,7 @@ public class OrderService {
         Optional<Order> existingOrder = orderRepository.findById(id);
         checkNotFoundException(existingOrder.orElse(null),
                 "Order not found with id: " + id);
-
-        String url = "http://delivery-service/delivery-tasks/" + id
-                + "/location";
-
+        String url = apiGatewayUrl + "/delivery-tasks/" + id + "/location";
         LocationDTO location = webClient
                 .get()
                 .uri(url)
@@ -170,7 +171,6 @@ public class OrderService {
         if (location == null || location.getFirst() == null || location.getSecond() == null) {
             throw new RuntimeException("Failed to get location for order " + id);
         }
-
         return new OrderLocation(location.getFirst(), location.getSecond());
     }
 

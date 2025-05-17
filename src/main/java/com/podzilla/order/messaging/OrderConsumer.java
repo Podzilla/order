@@ -34,13 +34,14 @@ public class OrderConsumer {
 
     @RabbitListener(queues = EventsConstants.ORDER_INVENTORY_EVENT_QUEUE)
     public void handleStockReserved(final BaseEvent payload) {
-        if (payload instanceof WarehouseStockReservedEvent
-                warehouseStockReservedEvent) {
+        if (payload instanceof WarehouseStockReservedEvent) {
+            WarehouseStockReservedEvent warehouseStockReservedEvent =
+                    (WarehouseStockReservedEvent) payload;
             handleWarehouseStockReservedEvent(warehouseStockReservedEvent);
         }
-        if (payload instanceof WarehouseOrderFulfillmentFailedEvent
-                warehouseOrderFulfillmentFailedEvent) {
-
+        if (payload instanceof WarehouseOrderFulfillmentFailedEvent) {
+            WarehouseOrderFulfillmentFailedEvent warehouseOrderFulfillmentFailedEvent =
+                    (WarehouseOrderFulfillmentFailedEvent) payload;
             handleWarehouseOrderFulfillmentFailedEvent(
                     warehouseOrderFulfillmentFailedEvent);
         }
@@ -48,21 +49,28 @@ public class OrderConsumer {
 
     @RabbitListener(queues = EventsConstants.ORDER_ORDER_EVENT_QUEUE)
     public void trackOrder(final BaseEvent payload) {
-        if (payload instanceof OrderPackagedEvent orderPackagedEvent) {
+        if (payload instanceof OrderPackagedEvent) {
+            OrderPackagedEvent orderPackagedEvent = (OrderPackagedEvent) payload;
             handleOrderPackagedEvent(orderPackagedEvent);
         }
-        if (payload instanceof OrderAssignedToCourierEvent
-                orderAssignedToCourierEvent) {
+        if (payload instanceof OrderAssignedToCourierEvent) {
+            OrderAssignedToCourierEvent orderAssignedToCourierEvent =
+                    (OrderAssignedToCourierEvent) payload;
             handleOrderAssignedToCourierEvent(orderAssignedToCourierEvent);
         }
-        if (payload instanceof OrderOutForDeliveryEvent
-                orderOutForDeliveryEvent) {
+        if (payload instanceof OrderOutForDeliveryEvent) {
+            OrderOutForDeliveryEvent orderOutForDeliveryEvent =
+                    (OrderOutForDeliveryEvent) payload;
             handleOrderOutForDeliveryEvent(orderOutForDeliveryEvent);
         }
-        if (payload instanceof OrderDeliveredEvent orderDeliveredEvent) {
+        if (payload instanceof OrderDeliveredEvent) {
+            OrderDeliveredEvent orderDeliveredEvent =
+                    (OrderDeliveredEvent) payload;
             handleOrderDeliveredEvent(orderDeliveredEvent);
         }
-        if (payload instanceof CartCheckedoutEvent cartCheckedoutEvent) {
+        if (payload instanceof CartCheckedoutEvent) {
+            CartCheckedoutEvent cartCheckedoutEvent =
+                    (CartCheckedoutEvent) payload;
             handleCartCheckoutEvent(cartCheckedoutEvent);
         }
     }

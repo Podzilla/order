@@ -1,6 +1,10 @@
 package com.podzilla.order.service;
 
-import com.podzilla.mq.events.*;
+import com.podzilla.mq.events.OrderCancelledEvent;
+import com.podzilla.mq.events.OrderItem;
+import com.podzilla.mq.events.OrderPlacedEvent;
+import com.podzilla.mq.events.OrderStockReservationRequestedEvent;
+import com.podzilla.order.dtos.LocationDTO;
 import com.podzilla.order.exception.NotFoundException;
 import com.podzilla.order.messaging.OrderProducer;
 import com.podzilla.order.model.Order;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,12 +30,15 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderProducer orderProducer;
+    private final WebClient webClient;
 
     @Autowired
     public OrderService(final OrderRepository orderRepository,
-                        final OrderProducer orderProducer) {
+                        final OrderProducer orderProducer,
+                        final WebClient webClient) {
         this.orderRepository = orderRepository;
         this.orderProducer = orderProducer;
+        this.webClient = webClient;
     }
 
     public Order createOrder(final Order order) {
@@ -148,7 +156,22 @@ public class OrderService {
         Optional<Order> existingOrder = orderRepository.findById(id);
         checkNotFoundException(existingOrder.orElse(null),
                 "Order not found with id: " + id);
-        
+
+        String url = "http://delivery-service/delivery-tasks/" + id
+                + "/location";
+
+        LocationDTO location = webClient
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(LocationDTO.class)
+                .block();
+
+        if (location == null || location.getFirst() == null || location.getSecond() == null) {
+            throw new RuntimeException("Failed to get location for order " + id);
+        }
+
+        return new OrderLocation(location.getFirst(), location.getSecond());
     }
 
     private void checkNotFoundException(final Object value,

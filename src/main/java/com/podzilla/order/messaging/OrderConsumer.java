@@ -1,8 +1,14 @@
 package com.podzilla.order.messaging;
 
 import com.podzilla.mq.EventsConstants;
-import com.podzilla.mq.QueueResolver;
-import com.podzilla.mq.events.*;
+import com.podzilla.mq.events.BaseEvent;
+import com.podzilla.mq.events.CartCheckedoutEvent;
+import com.podzilla.mq.events.OrderAssignedToCourierEvent;
+import com.podzilla.mq.events.OrderDeliveredEvent;
+import com.podzilla.mq.events.OrderOutForDeliveryEvent;
+import com.podzilla.mq.events.OrderPackagedEvent;
+import com.podzilla.mq.events.WarehouseOrderFulfillmentFailedEvent;
+import com.podzilla.mq.events.WarehouseStockReservedEvent;
 import com.podzilla.order.model.Address;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderProduct;
@@ -27,12 +33,12 @@ public class OrderConsumer {
 
     @RabbitListener(queues = EventsConstants.ORDER_INVENTORY_EVENT_QUEUE)
     public void handleStockReserved(final BaseEvent payload) {
-        if(payload instanceof WarehouseStockReservedEvent
+        if (payload instanceof WarehouseStockReservedEvent
                 warehouseStockReservedEvent) {
             handleWarehouseStockReservedEvent(warehouseStockReservedEvent);
         }
-        if(payload instanceof WarehouseOrderFulfillmentFailedEvent
-                warehouseOrderFulfillmentFailedEvent){
+        if (payload instanceof WarehouseOrderFulfillmentFailedEvent
+                warehouseOrderFulfillmentFailedEvent) {
 
             handleWarehouseOrderFulfillmentFailedEvent(
                     warehouseOrderFulfillmentFailedEvent);
@@ -41,21 +47,21 @@ public class OrderConsumer {
 
     @RabbitListener(queues = EventsConstants.ORDER_ORDER_EVENT_QUEUE)
     public void trackOrder(final BaseEvent payload) {
-        if(payload instanceof OrderPackagedEvent orderPackagedEvent) {
+        if (payload instanceof OrderPackagedEvent orderPackagedEvent) {
             handleOrderPackagedEvent(orderPackagedEvent);
         }
-        if(payload instanceof OrderAssignedToCourierEvent
+        if (payload instanceof OrderAssignedToCourierEvent
                 orderAssignedToCourierEvent) {
             handleOrderAssignedToCourierEvent(orderAssignedToCourierEvent);
         }
-        if(payload instanceof OrderOutForDeliveryEvent
-                orderOutForDeliveryEvent){
+        if (payload instanceof OrderOutForDeliveryEvent
+                orderOutForDeliveryEvent) {
             handleOrderOutForDeliveryEvent(orderOutForDeliveryEvent);
         }
-        if(payload instanceof OrderDeliveredEvent orderDeliveredEvent) {
+        if (payload instanceof OrderDeliveredEvent orderDeliveredEvent) {
             handleOrderDeliveredEvent(orderDeliveredEvent);
         }
-        if(payload instanceof CartCheckedoutEvent cartCheckedoutEvent) {
+        if (payload instanceof CartCheckedoutEvent cartCheckedoutEvent) {
             handleCartCheckoutEvent(cartCheckedoutEvent);
         }
     }
@@ -155,10 +161,5 @@ public class OrderConsumer {
         orderService.updateOrderStatus(
                 UUID.fromString(orderPackagedEvent.getOrderId()),
                 OrderStatus.PACKAGED);
-    }
-
-    public static void main(String[] args) {
-       System.out.println( QueueResolver.getQueueForServiceEvent(EventsConstants.SERVICE_ORDER,
-               EventsConstants.ORDER_ASSIGNED_TO_COURIER));
     }
 }

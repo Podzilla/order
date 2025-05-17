@@ -5,9 +5,7 @@ import com.podzilla.mq.EventsConstants;
 import com.podzilla.mq.events.OrderCancelledEvent;
 import com.podzilla.mq.events.OrderPlacedEvent;
 import com.podzilla.mq.events.OrderStockReservationRequestedEvent;
-import com.podzilla.mq.events.WarehouseStockReservedEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,7 +34,7 @@ public class OrderProducer {
     }
 
     public void sendCancelOrder(
-            final OrderCancelledEvent orderCancelledEvent){
+            final OrderCancelledEvent orderCancelledEvent) {
         eventPublisher.publishEvent(
                 EventsConstants.ORDER_CANCELLED,
                 orderCancelledEvent

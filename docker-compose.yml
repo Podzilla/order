@@ -8,6 +8,8 @@ services:
       - order_db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://order_db:5432/orderDB
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
     volumes:
       - ./target:/app
       - ./logs:/logs
@@ -30,25 +32,6 @@ services:
       - "15672:15672"
       - "5672:5672"
     environment:
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
-  loki:
-    image: grafana/loki:3.5.0
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-
-  grafana:
-    image: grafana/grafana:10.4.1
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    depends_on:
-      - loki
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana

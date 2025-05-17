@@ -112,16 +112,17 @@ public class OrderConsumer {
                     product.setPricePerUnit(orderProduct.getPricePerUnit());
                     return product;
                 }).toList();
-        Order order = new Order();
-        order.setUserId(UUID.fromString(cartCheckedoutEvent.getCustomerId()));
-        order.setTotalAmount(cartCheckedoutEvent.getTotalAmount());
-        order.setStatus(OrderStatus.PENDING);
-        order.setShippingAddress(address);
-        order.setOrderProducts(orderProducts);
-        order.setConfirmationType(cartCheckedoutEvent.getConfirmationType());
-        order.setSignature(cartCheckedoutEvent.getSignature());
-        order.setOrderLatitude(cartCheckedoutEvent.getOrderLatitude());
-        order.setOrderLongitude(cartCheckedoutEvent.getOrderLongitude());
+        Order order = new Order.Builder()
+                .userId(UUID.fromString(cartCheckedoutEvent.getCustomerId()))
+                .totalAmount(cartCheckedoutEvent.getTotalAmount())
+                .status(OrderStatus.PENDING)
+                .shippingAddress(address)
+                .orderProducts(orderProducts)
+                .confirmationType(cartCheckedoutEvent.getConfirmationType())
+                .signature(cartCheckedoutEvent.getSignature())
+                .orderLatitude(cartCheckedoutEvent.getOrderLatitude())
+                .orderLongitude(cartCheckedoutEvent.getOrderLongitude())
+                .build();
         orderService.createOrder(order);
     }
 
@@ -130,7 +131,7 @@ public class OrderConsumer {
                 orderAssignedToCourierEvent.getOrderId());
         orderService.updateOrder(
                 UUID.fromString(orderAssignedToCourierEvent.getOrderId()),
-                Order.builder()
+                new Order.Builder()
                         .courierId(UUID.fromString(orderAssignedToCourierEvent.getCourierId()))
                         .status(OrderStatus.ORDER_ASSIGNED_TO_COURIER)
                         .build());
@@ -147,7 +148,7 @@ public class OrderConsumer {
         log.info("✅ Order out for delivery for order: {}", orderOutForDeliveryEvent.getOrderId());
         orderService.updateOrder(
                 UUID.fromString(orderOutForDeliveryEvent.getOrderId()),
-                Order.builder()
+                new Order.Builder()
                         .courierId(UUID.fromString(orderOutForDeliveryEvent.getCourierId()))
                         .status(OrderStatus.OUT_FOR_DELIVERY)
                         .build());

@@ -4,6 +4,7 @@ import com.podzilla.mq.events.*;
 import com.podzilla.order.exception.NotFoundException;
 import com.podzilla.order.messaging.OrderProducer;
 import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderLocation;
 import com.podzilla.order.model.OrderProduct;
 import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.repository.OrderRepository;
@@ -105,7 +106,7 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
-    public Order cancelOrder(final UUID id) {
+    public Order cancelOrder(final UUID id, final String reason) {
         log.info("Cancelling order with ID: {}", id);
 
         Optional<Order> existingOrder = orderRepository.findById(id);
@@ -121,7 +122,7 @@ public class OrderService {
                 OrderCancelledEvent.builder()
                         .orderId(order.getId().toString())
                         .customerId(order.getUserId().toString())
-                        .reason("Customer requested cancellation")
+                        .reason(reason)
                         .build();
         orderProducer.sendCancelOrder(orderCancelledEvent);
         return order;
@@ -140,6 +141,14 @@ public class OrderService {
         order.setStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
         return orderRepository.save(order);
+    }
+
+    public OrderLocation trackOrder(final UUID id) {
+        log.info("Tracking order with ID: {}", id);
+        Optional<Order> existingOrder = orderRepository.findById(id);
+        checkNotFoundException(existingOrder.orElse(null),
+                "Order not found with id: " + id);
+        
     }
 
     private void checkNotFoundException(final Object value,
@@ -161,4 +170,6 @@ public class OrderService {
         }
         return orderItems;
     }
+
+
 }

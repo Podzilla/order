@@ -27,72 +27,138 @@ public class OrderConsumer {
 
     @RabbitListener(queues = EventsConstants.ORDER_INVENTORY_EVENT_QUEUE)
     public void handleStockReserved(final BaseEvent payload) {
-        if(payload instanceof WarehouseStockReservedEvent warehouseStockReservedEvent) {
-            log.info("✅ Stock reserved for order: {}", warehouseStockReservedEvent.getOrderId());
-            orderService.placeOrder(UUID.fromString(warehouseStockReservedEvent.getOrderId()));
+        if(payload instanceof WarehouseStockReservedEvent
+                warehouseStockReservedEvent) {
+            handleWarehouseStockReservedEvent(warehouseStockReservedEvent);
         }
-        if(payload instanceof WarehouseOrderFulfillmentFailedEvent warehouseOrderFulfillmentFailedEvent){
-            log.info("❌ Order fulfillment failed for order: {}, reason: {}",
-                    warehouseOrderFulfillmentFailedEvent.getOrderId(),
-                    warehouseOrderFulfillmentFailedEvent.getReason());
-            orderService.updateOrderStatus(
-                    UUID.fromString(warehouseOrderFulfillmentFailedEvent.getOrderId()), OrderStatus.FAILED);
+        if(payload instanceof WarehouseOrderFulfillmentFailedEvent
+                warehouseOrderFulfillmentFailedEvent){
+
+            handleWarehouseOrderFulfillmentFailedEvent(
+                    warehouseOrderFulfillmentFailedEvent);
         }
     }
 
     @RabbitListener(queues = EventsConstants.ORDER_ORDER_EVENT_QUEUE)
     public void trackOrder(final BaseEvent payload) {
         if(payload instanceof OrderPackagedEvent orderPackagedEvent) {
-            log.info("✅ Order packaged for order: {}",
-                    orderPackagedEvent.getOrderId());
-            orderService.updateOrderStatus(
-                    UUID.fromString(orderPackagedEvent.getOrderId()),
-                    OrderStatus.PACKAGED);
+            handleOrderPackagedEvent(orderPackagedEvent);
         }
-        if(payload instanceof OrderOutForDeliveryEvent orderOutForDeliveryEvent){
-            log.info("✅ Order out for delivery for order: {}",
-                    orderOutForDeliveryEvent.getOrderId());
-            orderService.updateOrderStatus(
-                    UUID.fromString(orderOutForDeliveryEvent.getOrderId()),
-                    OrderStatus.SHIPPED);
+        if(payload instanceof OrderAssignedToCourierEvent
+                orderAssignedToCourierEvent) {
+            handleOrderAssignedToCourierEvent(orderAssignedToCourierEvent);
+        }
+        if(payload instanceof OrderOutForDeliveryEvent
+                orderOutForDeliveryEvent){
+            handleOrderOutForDeliveryEvent(orderOutForDeliveryEvent);
         }
         if(payload instanceof OrderDeliveredEvent orderDeliveredEvent) {
-            log.info("✅ Order delivered for order: {}",
-                    orderDeliveredEvent.getOrderId());
-            orderService.updateOrderStatus(
-                    UUID.fromString(orderDeliveredEvent.getOrderId()),
-                    OrderStatus.DELIVERED);
+            handleOrderDeliveredEvent(orderDeliveredEvent);
         }
         if(payload instanceof CartCheckedoutEvent cartCheckedoutEvent) {
-            log.info("✅ Cart checked out for user with id: {}",
-                    cartCheckedoutEvent.getCustomerId());
-            Address address = new Address();
-            address.setStreet(cartCheckedoutEvent.getDeliveryAddress().getStreet());
-            address.setCity(cartCheckedoutEvent.getDeliveryAddress().getCity());
-            address.setState(cartCheckedoutEvent.getDeliveryAddress().getState());
-            address.setCountry(cartCheckedoutEvent.getDeliveryAddress().getCountry());
-            address.setPostalCode(cartCheckedoutEvent.getDeliveryAddress().getPostalCode());
-            List<OrderProduct> orderProducts =
-                    cartCheckedoutEvent.getItems().stream()
-                    .map(orderProduct -> {
-                        OrderProduct product = new OrderProduct();
-                        product.setProductId(UUID.fromString(orderProduct.getProductId()));
-                        product.setQuantity(orderProduct.getQuantity());
-                        product.setPricePerUnit(orderProduct.getPricePerUnit());
-                        return product;
-                    }).toList();
-            Order order = new Order();
-            order.setUserId(UUID.fromString(cartCheckedoutEvent.getCustomerId()));
-            order.setTotalAmount(cartCheckedoutEvent.getTotalAmount());
-            order.setStatus(OrderStatus.PENDING);
-            order.setShippingAddress(address);
-            order.setOrderProducts(orderProducts);
-            orderService.createOrder(order);
+            handleCartCheckoutEvent(cartCheckedoutEvent);
         }
+    }
+
+    private void handleWarehouseStockReservedEvent(
+            final WarehouseStockReservedEvent warehouseStockReservedEvent) {
+
+        log.info("✅ Stock reserved for order: {}",
+                warehouseStockReservedEvent.getOrderId());
+        orderService.placeOrder(UUID.fromString(
+                warehouseStockReservedEvent.getOrderId()));
+    }
+
+    private void handleWarehouseOrderFulfillmentFailedEvent(
+            final WarehouseOrderFulfillmentFailedEvent
+                    warehouseOrderFulfillmentFailedEvent) {
+        log.info("❌ Order fulfillment failed for order: {}, reason: {}",
+                warehouseOrderFulfillmentFailedEvent.getOrderId(),
+                warehouseOrderFulfillmentFailedEvent.getReason());
+        orderService.cancelOrder(
+                UUID.fromString(warehouseOrderFulfillmentFailedEvent
+                        .getOrderId()),
+                warehouseOrderFulfillmentFailedEvent.getReason());
+    }
+
+    private void handleCartCheckoutEvent(
+            final CartCheckedoutEvent cartCheckedoutEvent) {
+        log.info("✅ Cart checked out for user with id: {}",
+                cartCheckedoutEvent.getCustomerId());
+        Address address = new Address();
+        address.setStreet(
+                cartCheckedoutEvent.getDeliveryAddress().getStreet());
+        address.setCity(cartCheckedoutEvent.getDeliveryAddress().getCity());
+        address.setState(cartCheckedoutEvent.getDeliveryAddress().getState());
+        address.setCountry(
+                cartCheckedoutEvent.getDeliveryAddress().getCountry());
+        address.setPostalCode(
+                cartCheckedoutEvent.getDeliveryAddress().getPostalCode());
+        List<OrderProduct> orderProducts =
+                cartCheckedoutEvent.getItems().stream()
+                .map(orderProduct -> {
+                    OrderProduct product = new OrderProduct();
+                    product.setProductId(
+                            UUID.fromString(orderProduct.getProductId()));
+                    product.setQuantity(orderProduct.getQuantity());
+                    product.setPricePerUnit(orderProduct.getPricePerUnit());
+                    return product;
+                }).toList();
+        Order order = new Order();
+        order.setUserId(UUID.fromString(cartCheckedoutEvent.getCustomerId()));
+        order.setTotalAmount(cartCheckedoutEvent.getTotalAmount());
+        order.setStatus(OrderStatus.PENDING);
+        order.setShippingAddress(address);
+        order.setOrderProducts(orderProducts);
+        orderService.createOrder(order);
+    }
+
+    private void handleOrderAssignedToCourierEvent(
+            final OrderAssignedToCourierEvent orderAssignedToCourierEvent) {
+        log.info("✅ Order assigned to courier for order: {}",
+                orderAssignedToCourierEvent.getOrderId());
+        orderService.updateOrder(
+                UUID.fromString(orderAssignedToCourierEvent.getOrderId()),
+                Order.builder()
+                        .courierId(UUID.fromString(
+                                orderAssignedToCourierEvent.getCourierId()))
+                        .status(OrderStatus.ORDER_ASSIGNED_TO_COURIER)
+                        .build());
+    }
+
+    private void handleOrderDeliveredEvent(
+            final OrderDeliveredEvent orderDeliveredEvent) {
+        log.info("✅ Order delivered for order: {}",
+                orderDeliveredEvent.getOrderId());
+        orderService.updateOrderStatus(
+                UUID.fromString(orderDeliveredEvent.getOrderId()),
+                OrderStatus.DELIVERED);
+    }
+
+    private void handleOrderOutForDeliveryEvent(
+            final OrderOutForDeliveryEvent orderOutForDeliveryEvent) {
+        log.info("✅ Order out for delivery for order: {}",
+                orderOutForDeliveryEvent.getOrderId());
+        orderService.updateOrder(
+                UUID.fromString(orderOutForDeliveryEvent.getOrderId()),
+                Order.builder()
+                        .courierId(UUID.fromString(orderOutForDeliveryEvent
+                                .getCourierId()))
+                        .status(OrderStatus.OUT_FOR_DELIVERY)
+                        .build());
+    }
+
+    private void handleOrderPackagedEvent(
+            final OrderPackagedEvent orderPackagedEvent) {
+        log.info("✅ Order packaged for order: {}",
+                orderPackagedEvent.getOrderId());
+        orderService.updateOrderStatus(
+                UUID.fromString(orderPackagedEvent.getOrderId()),
+                OrderStatus.PACKAGED);
     }
 
     public static void main(String[] args) {
        System.out.println( QueueResolver.getQueueForServiceEvent(EventsConstants.SERVICE_ORDER,
-               EventsConstants.ORDER_PLACED));
+               EventsConstants.ORDER_ASSIGNED_TO_COURIER));
     }
 }

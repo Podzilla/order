@@ -1,6 +1,7 @@
 package com.podzilla.order.controller;
 
 import com.podzilla.order.model.Order;
+import com.podzilla.order.model.OrderLocation;
 import com.podzilla.order.model.OrderStatus;
 import com.podzilla.order.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +40,8 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+
+
     @PostMapping
     @Operation(summary = "Create a new order",
             description = "Creates a new order and returns the created order")
@@ -49,6 +53,8 @@ public class OrderController {
         return ResponseEntity.ok(createdOrder);
     }
 
+
+
     @GetMapping
     @Operation(summary = "Get all orders",
             description = "Returns a list of all orders")
@@ -58,6 +64,8 @@ public class OrderController {
         List<Order> orders = orderService.getAllOrders();
         return ResponseEntity.ok(orders);
     }
+
+
 
     @GetMapping("/{id}")
     @Operation(summary = "Get order by ID",
@@ -70,7 +78,9 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    @PutMapping("/{id}")
+
+
+    @PatchMapping("/{id}")
     @Operation(summary = "Update an order",
             description = "Updates an existing order and returns the updated "
                     + "order")
@@ -83,6 +93,8 @@ public class OrderController {
         return ResponseEntity.ok(updatedOrder);
     }
 
+
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete an order",
             description = "Deletes an order by its ID")
@@ -93,6 +105,8 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+
 
     @GetMapping("/user/{userId}")
     @Operation(
@@ -109,6 +123,8 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+
+
     @PutMapping("/cancel/{id}")
     @Operation(
             summary = "Cancel order",
@@ -117,11 +133,14 @@ public class OrderController {
     @ApiResponse(
             responseCode = "200", description = "Order cancelled"
     )
-    public ResponseEntity<Order> cancelOrder(@PathVariable final UUID id) {
-        Order order = orderService.cancelOrder(id);
+    public ResponseEntity<Order> cancelOrder(@PathVariable final UUID id,
+                                             @RequestBody final String reason) {
+        Order order = orderService.cancelOrder(id, reason);
         LOGGER.info("Order with ID: {} cancelled", id);
         return ResponseEntity.ok(order);
     }
+
+
 
     @PutMapping("/status/{id}")
     @Operation(
@@ -137,5 +156,22 @@ public class OrderController {
         Order order = orderService.updateOrderStatus(id, status);
         LOGGER.info("Order status updated for ID: {}", id);
         return ResponseEntity.ok(order);
+    }
+
+
+
+    @GetMapping("/trackOrder/{id}")
+    @Operation(
+            summary = "Track order",
+            description = "Tracks the location of an order based on "
+                    + "the provided order ID"
+    )
+    @ApiResponse(
+            responseCode = "200", description = "Order location tracked"
+    )
+    public ResponseEntity<OrderLocation> trackOrder(@PathVariable final UUID id) {
+        OrderLocation location = orderService.trackOrder(id);
+        LOGGER.info("Order location tracked for ID: {}", id);
+        return ResponseEntity.ok(location);
     }
 }

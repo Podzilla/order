@@ -12,10 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.GenerationType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,6 +26,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Order {
 
     @Id
@@ -37,19 +35,18 @@ public class Order {
 
     private UUID userId;
 
+    private UUID courierId;
+
     private BigDecimal totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Address shippingAddress;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
     private OrderStatus status;
 
-    @Column(nullable = true)
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval =

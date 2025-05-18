@@ -9,6 +9,7 @@ import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import com.podzilla.mq.events.OrderPackagedEvent;
 import com.podzilla.mq.events.WarehouseOrderFulfillmentFailedEvent;
 import com.podzilla.mq.events.WarehouseStockReservedEvent;
+import com.podzilla.mq.events.OrderDeliveryFailedEvent;
 import com.podzilla.order.model.Address;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderProduct;
@@ -73,6 +74,16 @@ public class OrderConsumer {
                     (CartCheckedoutEvent) payload;
             handleCartCheckoutEvent(cartCheckedoutEvent);
         }
+        if (payload instanceof OrderDeliveryFailedEvent) {
+            OrderDeliveryFailedEvent orderDeliveryFailedEvent =
+                    (OrderDeliveryFailedEvent) payload;
+            log.info("❌ Order delivery failed for order: {}, reason: {}",
+                    orderDeliveryFailedEvent.getOrderId(),
+                    orderDeliveryFailedEvent.getReason());
+            orderService.updateOrderStatus(
+                    UUID.fromString(orderDeliveryFailedEvent.getOrderId()),
+                    OrderStatus.DELIVERY_FAILED);
+        }
     }
 
     private void handleWarehouseStockReservedEvent(
@@ -133,7 +144,7 @@ public class OrderConsumer {
                 UUID.fromString(orderAssignedToCourierEvent.getOrderId()),
                 new Order.Builder()
                         .courierId(UUID.fromString(orderAssignedToCourierEvent.getCourierId()))
-                        .status(OrderStatus.ORDER_ASSIGNED_TO_COURIER)
+                        .status(OrderStatus.ASSIGNED_TO_COURIER)
                         .build());
     }
 

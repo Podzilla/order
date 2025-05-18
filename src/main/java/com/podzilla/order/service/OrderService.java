@@ -153,15 +153,7 @@ public class OrderService {
             order.setStatus(OrderStatus.CANCELLED);
             order.setUpdatedAt(LocalDateTime.now());
             orderRepository.save(order);
-            List<OrderProduct> orderProducts = order.getOrderProducts();
-            List<OrderItem> orderItems = orderProducts.stream()
-                    .map(orderProduct -> {
-                        OrderItem orderItem = new OrderItem();
-                        orderItem.setProductId(orderProduct.getProductId().toString());
-                        orderItem.setQuantity(orderProduct.getQuantity());
-                        orderItem.setPricePerUnit(orderProduct.getPricePerUnit());
-                        return orderItem;
-                    }).toList();
+            List<OrderItem> orderItems = getOrderItems(order);
             OrderCancelledEvent orderCancelledEvent =
                     OrderCancelledEvent.builder()
                             .orderId(order.getId().toString())

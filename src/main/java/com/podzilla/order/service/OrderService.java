@@ -153,12 +153,11 @@ public class OrderService {
             order.setStatus(OrderStatus.CANCELLED);
             order.setUpdatedAt(LocalDateTime.now());
             orderRepository.save(order);
-            List<OrderItem> orderItems = getOrderItems(order);
             OrderCancelledEvent orderCancelledEvent =
                     OrderCancelledEvent.builder()
                             .orderId(order.getId().toString())
                             .customerId(order.getUserId().toString())
-                            .items(orderItems)
+                            .items(getOrderItems(order))
                             .reason(reason)
                             .build();
             orderProducer.sendCancelOrder(orderCancelledEvent);
@@ -211,17 +210,12 @@ public class OrderService {
     }
 
     private List<OrderItem> getOrderItems(final Order order) {
-        List<OrderItem> orderItems = new ArrayList<>();
         List<OrderProduct> orderProducts = order.getOrderProducts();
-        for (OrderProduct product : orderProducts) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProductId(product.getId().toString());
-            orderItem.setQuantity(product.getQuantity());
-            orderItem.setPricePerUnit(product.getPricePerUnit());
-            orderItems.add(orderItem);
-        }
-        return orderItems;
+        return orderProducts.stream()
+                .map(product -> new OrderItem(
+                        product.getProductId().toString(),
+                        product.getQuantity(),
+                        product.getPricePerUnit()))
+                .toList();
     }
-
-
 }

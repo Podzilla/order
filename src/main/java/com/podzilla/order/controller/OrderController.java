@@ -1,5 +1,11 @@
 package com.podzilla.order.controller;
 
+import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.EventsConstants;
+import com.podzilla.mq.events.CartCheckedoutEvent;
+import com.podzilla.mq.events.ConfirmationType;
+import com.podzilla.mq.events.DeliveryAddress;
+import com.podzilla.mq.events.OrderItem;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderLocation;
 import com.podzilla.order.model.OrderStatus;
@@ -22,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,12 +40,14 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final EventPublisher eventPublisher;
     private static final Logger LOGGER =
             LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
-    public OrderController(final OrderService orderService) {
+    public OrderController(final OrderService orderService, final EventPublisher eventPublisher) {
         this.orderService = orderService;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -78,6 +88,33 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+
+    @GetMapping("/testEventPublisher")
+    public ResponseEntity<String> testEventPublisher() {
+        LOGGER.info("Testing Event Publisher");
+        List<OrderItem> orderItems = new ArrayList<>();
+        orderItems.add(new OrderItem(UUID.randomUUID().toString(), 5, new BigDecimal(100.0)));
+        DeliveryAddress deliveryAddress = new DeliveryAddress(
+                "123 Main St",
+                "Springfield",
+                "IL",
+                "USA",
+                "62701"
+        );
+        CartCheckedoutEvent event = new CartCheckedoutEvent(
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(),
+                orderItems,
+                new BigDecimal(500.0),
+                deliveryAddress,
+                10.0,
+                20.0,
+                "signature",
+                ConfirmationType.SIGNATURE
+        );
+        eventPublisher.publishEvent(EventsConstants.CART_CHECKEDOUT, event);
+        return ResponseEntity.ok("Event published successfully");
+    }
 
 
     @PatchMapping("/{id}")
@@ -122,7 +159,6 @@ public class OrderController {
         LOGGER.info("Order found for user ID: {}", userId);
         return ResponseEntity.ok(order);
     }
-
 
 
     @PutMapping("/cancel/{id}")

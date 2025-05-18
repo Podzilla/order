@@ -53,6 +53,8 @@ public class OrderService {
         log.info("Creating new order: {}", order);
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
+        order.getShippingAddress().setOrder(order);
+        order.getOrderProducts().forEach(product -> product.setOrder(order));
         orderRepository.save(order);
 
         OrderStatusStrategy strategy = strategyFactory.getStrategy(OrderStatus.PENDING);

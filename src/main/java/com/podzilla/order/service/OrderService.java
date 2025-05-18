@@ -4,7 +4,6 @@ import com.podzilla.mq.events.DeliveryAddress;
 import com.podzilla.mq.events.OrderCancelledEvent;
 import com.podzilla.mq.events.OrderItem;
 import com.podzilla.mq.events.OrderPlacedEvent;
-import com.podzilla.mq.events.DeliveryAddress;
 import com.podzilla.order.dtos.LocationDTO;
 import com.podzilla.order.exception.InvalidActionException;
 import com.podzilla.order.exception.NotFoundException;
@@ -22,9 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import com.podzilla.order.service.statusstrategy.OrderStatusStrategy;
-import com.podzilla.order.service.statusstrategy.OrderStatusStrategyFactory;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

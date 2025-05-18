@@ -39,7 +39,7 @@ public class CreatedOrderStrategy implements OrderStatusStrategy {
         List<OrderProduct> orderProducts = order.getOrderProducts();
         for (OrderProduct product : orderProducts) {
             OrderItem orderItem = new OrderItem();
-            orderItem.setProductId(product.getId().toString());
+            orderItem.setProductId(product.getProductId().toString());
             orderItem.setQuantity(product.getQuantity());
             orderItem.setPricePerUnit(product.getPricePerUnit());
             orderItems.add(orderItem);

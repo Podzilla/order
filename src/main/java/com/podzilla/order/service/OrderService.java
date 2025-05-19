@@ -16,11 +16,13 @@ import com.podzilla.order.repository.OrderRepository;
 import com.podzilla.order.service.statusstrategy.OrderStatusStrategy;
 import com.podzilla.order.service.statusstrategy.OrderStatusStrategyFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -110,9 +112,9 @@ public class OrderService {
         Optional<Order> existingOrder = orderRepository.findById(id);
         if (existingOrder.isPresent()) {
             Order order = existingOrder.get();
-            BeanUtils.copyProperties(updatedOrder, order, "id");
+            copyNonNullProperties(updatedOrder, order);
             order.setUpdatedAt(LocalDateTime.now());
-            log.info("Order with id: {} was found and updated", id);
+            log.info("Order with id: {} was found and updated to status: {}", id, updatedOrder.getStatus());
             return orderRepository.save(order);
         }
         log.warn("Order with id: {} was not found", id);
@@ -170,7 +172,7 @@ public class OrderService {
 
     public Order updateOrderStatus(final UUID id,
                                    final OrderStatus status) {
-        log.info("Updating order status with ID: {}", id);
+        log.info("Updating order status with ID: {} to status: {}", id, status);
 
         Optional<Order> existingOrder = orderRepository.findById(id);
 
@@ -218,5 +220,19 @@ public class OrderService {
                         product.getQuantity(),
                         product.getPricePerUnit()))
                 .toList();
+    }
+
+    public void copyNonNullProperties(final Object src, final Object target) {
+        BeanWrapper srcWrap = new BeanWrapperImpl(src);
+        BeanWrapper trgWrap = new BeanWrapperImpl(target);
+
+        for (java.beans.PropertyDescriptor descriptor : srcWrap.getPropertyDescriptors()) {
+            String propertyName = descriptor.getName();
+            Object propertyValue = srcWrap.getPropertyValue(propertyName);
+
+            if (propertyValue != null && trgWrap.isWritableProperty(propertyName)) {
+                trgWrap.setPropertyValue(propertyName, propertyValue);
+            }
+        }
     }
 }

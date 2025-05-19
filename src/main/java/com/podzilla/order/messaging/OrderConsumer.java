@@ -100,9 +100,9 @@ public class OrderConsumer {
         log.info("❌ Order fulfillment failed for order: {}, reason: {}",
                 warehouseOrderFulfillmentFailedEvent.getOrderId(),
                 warehouseOrderFulfillmentFailedEvent.getReason());
-        orderService.cancelOrder(
+        orderService.updateOrderStatus(
                 UUID.fromString(warehouseOrderFulfillmentFailedEvent.getOrderId()),
-                warehouseOrderFulfillmentFailedEvent.getReason());
+                OrderStatus.FULFILLMENT_FAILED);
     }
 
     private void handleCartCheckoutEvent(

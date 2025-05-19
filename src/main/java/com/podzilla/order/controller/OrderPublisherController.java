@@ -105,7 +105,8 @@
 //    }
 //
 //    @GetMapping("/testOrderDeliveredEvent/{id}/{courierId}")
-//    public ResponseEntity<String> testOrderDeliveredEvent(@PathVariable final UUID id, @PathVariable final String courierId) {
+//    public ResponseEntity<String> testOrderDeliveredEvent(@PathVariable final UUID id,
+//    @PathVariable final String courierId) {
 //        LOGGER.info("Testing Event Publisher");
 //
 //        OrderDeliveredEvent event = new OrderDeliveredEvent(
@@ -115,7 +116,8 @@
 //    }
 //
 //    @GetMapping("/testOrderOutForDeliveryEvent/{id}/{courierId}")
-//    public ResponseEntity<String> testOrderOutForDeliveryEvent(@PathVariable final UUID id, @PathVariable final String courierId) {
+//    public ResponseEntity<String> testOrderOutForDeliveryEvent(@PathVariable final UUID id,
+//    @PathVariable final String courierId) {
 //        LOGGER.info("Testing Event Publisher");
 //
 //        OrderOutForDeliveryEvent event = new OrderOutForDeliveryEvent(

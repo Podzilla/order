@@ -1,6 +1,7 @@
 package com.podzilla.order.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Table;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,6 +43,7 @@ public class Order {
     private BigDecimal totalAmount;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
     private Address shippingAddress;
 
     @Enumerated(EnumType.STRING)
@@ -61,6 +63,7 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,
             orphanRemoval = true)
+    @JsonIgnore
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
     public static class Builder {

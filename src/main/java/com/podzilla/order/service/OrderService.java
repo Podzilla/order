@@ -112,7 +112,7 @@ public class OrderService {
             Order order = existingOrder.get();
             BeanUtils.copyProperties(updatedOrder, order, "id");
             order.setUpdatedAt(LocalDateTime.now());
-            log.info("Order with id: {} was found and updated", id);
+            log.info("Order with id: {} was found and updated to status: {}", id, updatedOrder.getStatus());
             return orderRepository.save(order);
         }
         log.warn("Order with id: {} was not found", id);
@@ -170,7 +170,7 @@ public class OrderService {
 
     public Order updateOrderStatus(final UUID id,
                                    final OrderStatus status) {
-        log.info("Updating order status with ID: {}", id);
+        log.info("Updating order status with ID: {} to status: {}", id, status);
 
         Optional<Order> existingOrder = orderRepository.findById(id);
 

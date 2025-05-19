@@ -1,5 +1,6 @@
 package com.podzilla.order.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,6 +40,7 @@ public class OrderProduct {
     private BigDecimal pricePerUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 }

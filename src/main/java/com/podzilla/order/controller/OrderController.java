@@ -1,11 +1,6 @@
 package com.podzilla.order.controller;
 
 import com.podzilla.mq.EventPublisher;
-import com.podzilla.mq.EventsConstants;
-import com.podzilla.mq.events.CartCheckedoutEvent;
-import com.podzilla.mq.events.ConfirmationType;
-import com.podzilla.mq.events.DeliveryAddress;
-import com.podzilla.mq.events.OrderItem;
 import com.podzilla.order.model.Order;
 import com.podzilla.order.model.OrderLocation;
 import com.podzilla.order.model.OrderStatus;
@@ -26,10 +21,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

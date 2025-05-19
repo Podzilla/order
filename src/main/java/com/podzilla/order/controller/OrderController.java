@@ -89,34 +89,6 @@ public class OrderController {
     }
 
 
-    @GetMapping("/testEventPublisher")
-    public ResponseEntity<String> testEventPublisher() {
-        LOGGER.info("Testing Event Publisher");
-        List<OrderItem> orderItems = new ArrayList<>();
-        orderItems.add(new OrderItem(UUID.randomUUID().toString(), 5, new BigDecimal(100.0)));
-        DeliveryAddress deliveryAddress = new DeliveryAddress(
-                "123 Main St",
-                "Springfield",
-                "IL",
-                "USA",
-                "62701"
-        );
-        CartCheckedoutEvent event = new CartCheckedoutEvent(
-                UUID.randomUUID().toString(),
-                UUID.randomUUID().toString(),
-                orderItems,
-                new BigDecimal(500.0),
-                deliveryAddress,
-                10.0,
-                20.0,
-                "signature",
-                ConfirmationType.SIGNATURE
-        );
-        eventPublisher.publishEvent(EventsConstants.CART_CHECKEDOUT, event);
-        return ResponseEntity.ok("Event published successfully");
-    }
-
-
     @PatchMapping("/{id}")
     @Operation(summary = "Update an order",
             description = "Updates an existing order and returns the updated "
